@@ -1,0 +1,187 @@
+<HTML>
+
+<!--
+Comentário inicial
+
+Autor 1: António Ribeiro (41674)
+Autor 2: Vasco Coelho (41825)
+
+Achamos que cumprimos todos os objéctivos para o trabalho do Dancing Dog.
+Fizémos um jogo que corre sem problemas, com várias features(Pause, Restart, 
+Contagem do tempo, número de caranguejos presos, highscore e até história).
+
+Conseguimos implementar os caranguejos com o algoritmo de dijkstra bem como as 
+opções de vencer o jogo e gameOver.
+
+Só os lutadores que vencem o jogo é que poderão entrar nos nossos highscores 
+assim limitando aqueles que ficam simplesmente a andar de um lado para o outro
+em vez de tentar vencer realmente o jogo.
+
+Quando começamos o nosso jogo somos brindados com um starts screen que contém
+a história do nosso jogo, bem como o título e nome de quem fez o trabalho
+e algumas observações. Daí podemos clicar no botão ► para iniciar o jogo.
+
+Durante o jogo o jogador pode optar por fazer restart, bem como fazer pause.
+Para evitar que a pausa sirva para um jogador melhorar a sua estratégia,
+decidimos esconder o canvas. Assim sendo durante a pausa o jogador não poderá
+ganhar nenhuma vantagem ilegal contra os nossos caranguejos. 
+Para não ser uma passagem demasiadamente repentina quando se faz unpause,
+existe um timer de 3 segundos para o jogador se voltar a habituar e preparar.
+
+Por fim, se se vencer o jogo ganha-se a probabilidade de ter o highscore,
+é pedido o nome do utilizador e se o resultado for maior que o já existente na
+página, esse é alterado imediatamente. Fazemos isto com a opção de guardar
+alguma informação na própria página com o comando window.localstorage... 
+
+Na página HTML modificámos para além da estrutura criando mais alguns 
+botões/paragrafos, também o estilo da página recorrendo a CSS embutido na
+própria página deixando-a com aquele aspecto.
+
+Na implementação do jogo utilizámos exceções do javascript para o caso das 
+vitórias e derrotas, visto a acharmos que são duas situações excepcionais
+dentro do jogo de modo a que, quando o ultimo caranguejo(ou terrorista) é
+preso ou o jogador é apanhado é lançada uma exceção que será apanhada no
+loop do jogo e nos redireccionará para o trecho de código válido na dita 
+situação.
+
+-->
+
+<HEAD>
+<meta charset="UTF-8" />
+<title>Linguagens e Ambientes de Programação (2013/2014) [Eng.Inf. - DI/FCT/UNL] - 3º projeto prático (Javascript)</title>
+
+<SCRIPT TYPE="application/javascript" src="DancingDog.js">
+</SCRIPT>
+
+<style type="text/css">
+body {
+	background-color: DarkGoldenRod;
+	text-align: center;
+}
+
+canvas {
+	background-color: white;
+}
+
+p{
+	margin: 0px;
+	margin-left: 15%;
+
+}
+
+.title{
+	font-size: 5em;
+	color: #5C4306;
+	font-family: Impact, helvetica, arial, sans-serif;
+	text-shadow: 1px 1px 2px Black;
+	text-align: left;
+}
+
+.names{
+	font-size: 2em;
+	color: #5C4306;
+	font-family: Impact, helvetica, arial, sans-serif;
+	text-shadow: 0px 1px 1px Black;
+	text-align: right;
+	margin-right: 20%;
+}
+
+#start {
+	margin-top: 10px;
+}
+
+#game {
+	display:none;
+}
+.description{
+	margin-top: 10px;
+	margin-right: 25%;
+	margin-left: 25%;
+	text-align: justify;
+	font-family: "Trebuchet MS", Helvetica, sans-serif;
+}
+
+.button {
+  color: #29200a;
+  background: #805E08;
+  border: solid #29200a 2px;
+  font-size: 35px;
+  text-decoration: none;
+  font-family: "Trebuchet MS", Helvetica, sans-serif;	
+}
+
+#startButton{
+  margin-top: 1%;
+  font-size: 60px;
+  padding: 10px 20px 10px 20px;
+}
+
+.button:hover{
+  background: #DAA520;
+}
+
+#highScoreLabel{
+	margin-top: 1%;
+	text-align: center;
+}
+
+#timeLabel {
+	display:inline-block;
+  color: #29200a;
+  background: #805E08;
+  border: solid #29200a 2px;
+  text-decoration: none;
+  padding-bottom: 1px;
+  padding-top: 1px;
+  padding-right:5px;
+  padding-left:5px;
+}
+
+#stuckLabel {
+	display:inline-block;
+  color: #29200a;
+  background: #805E08;
+  border: solid #29200a 2px;
+  text-decoration: none;
+  padding-bottom: 1px;
+  padding-top: 1px;
+  padding-right:5px;
+  padding-left:5px;
+}
+</style>
+</HEAD>
+
+<BODY onload="onLoad()">
+<p class="title"><b>O CÃO DANÇARINO</b></p><p class="names"> António Ribeiro (41674), Vasco Coelho (41825)</p>
+<div id="start">
+	<p class="description"> Estamos em plena guerra, e tiveste um pouco de azar. Foste capturado por um batalhão inimigo e as coisas não pareciam famosas para ti. Coisas da vida não é? 
+	Mas com todos estes azares tiveste a pequena sorte de um terrorista inimigo deixar a porta da tua cela aberta o suficiente para escapares! Mas e agora? A tua arma encravou, estás ferido
+	não podes lutar; só te resta ser mais esperto que eles!
+	
+	Tenta prender todos os terroristas à volta dos blocos de madeira para ganhares o jogo e poderes lutar pelo melhor score! Não te deixes apanhar! Da próxima poderás não ter a mesma sorte.</p>
+	
+	<p class="description" style="text-align: center;"><b>CONTROLOS:</b>
+		<br>&#8593;,'q','i' - para cima.
+		<br>&#8595;,'a','k' - para baixo.
+		<br>&#8592;,'o','j' - para a esquerda.
+		<br>&#8594;,'p','l' - para a direita.
+	</p>
+	<input id="startButton" type="button" CLASS="button" value="►" onClick="startButton()"/>
+</div>
+
+
+<FORM NAME="form1" id="game">
+	<CANVAS  id="canvas1" width="992" height="576" style="border:1px solid #000000;">
+        Your browser doesn't support the HTML5 CANVAS tag.
+    </CANVAS> <br />
+	<INPUT TYPE="button" NAME="RestartButton" ID="RestartButton" VALUE="Restart" CLASS="button" OnClick="restartButton()">
+	<INPUT TYPE="button" NAME="PauseButton" ID="PauseButton" VALUE="Pause" CLASS="button" OnClick="pauseButton(this)">
+	<div class="button" id="timeLabel">00H:00M</div>
+	<div class="button" id="stuckLabel">Inimigos Presos:0</div>
+</FORM>
+	<p class="description" id="highScoreLabel">HighScore: </p>
+</BODY>
+
+</HTML>
+<!-- código inicial de AMD/2014 -->
+<!-- vim:set ts=4 sw=4 et: -->
